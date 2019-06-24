@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Implementation-Title: news-model
+Implementation-Version: 0.0.1-SNAPSHOT
+Built-By: Home-PC
+Implementation-Vendor-Id: com.yq.news
+Build-Jdk: 1.8.0_144
+Implementation-URL: https://projects.spring.io/spring-boot/#/spring-bo
+ ot-starter-parent/news-parent/news-model
+Created-By: Maven Integration for Eclipse
+
