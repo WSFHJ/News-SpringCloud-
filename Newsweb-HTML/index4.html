@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+		<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<title>新闻信息管理</title>
+		<meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+		<link rel="stylesheet" href="bootstrap/css/bootstrap.min.css" />
+		<link rel="stylesheet" href="adminLTE/css/AdminLTE.css"/>
+		<link rel="stylesheet" href="adminLTE/css/skins/_all-skins.css"/>
+		
+		<link rel="stylesheet" type="text/css" href="angularjs/pagination.css"/>
+		
+		
+		
+		<!--<script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>-->
+	    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+	    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="angularjs/angular.min.js"></script>
+		<!--<script type="text/javascript" src="jQuery/jquery-2.2.3.min.js"></script>-->
+		
+		<script type="text/javascript" src="angularjs/pagination.js"></script>
+		
+		
+		
+		
+		<script type="text/javascript">
+			
+			// 第二个参数 是将来我们可以绑定第三方插件
+			
+			// app -> 创建出来angular对象
+			//var app = angular.module("newsApp",[]);
+			var app = angular.module("newsApp",['pagination']);
+			
+			
+			// scope 对象  是  mvc 中 模型和视图的中介    $http 发送异步请求  get post 
+			app.controller("NewsController",function($scope,$http){
+				
+				
+				// 请求地址
+				
+				var news_query_list ="http://localhost:8899/news-query/"; 
+				
+				
+				// 编辑（添加   删除  修改）
+				var news_eidt_url = "http://localhost:8899/news-eidt/";
+				
+				$scope.loadNewsList = function(){
+					
+					// 发送异步请求   请求后台数据
+					
+					$http.get(news_query_list+"getNewsList").success(function(response){
+						
+						//alert(response);
+						
+						
+						// 将后台返回的response 数据存储起来
+						$scope.newslist = response;
+						
+					})
+					
+					
+					
+					
+				}
+				
+				
+				$scope.categoryList = function()
+				{
+					// 发送异步请求  请求后台数据
+					$http.get(news_query_list+"getCategoryList").success(function(response){
+						
+						alert(response);
+						
+						// 将后台返回的response 数据存储起来
+						$scope.categorylist = response;
+						
+					});
+				}
+				
+				
+			/*	// 添加功能
+				$scope.save = function(){
+					
+					
+					 // 发哦异步请求
+					 $http.post(news_eidt_url+"addNews",$scope.entity).success(function(response){
+					 
+					 alert(response.success);
+					 	
+					 	// 成功还是失败  
+					 	if(response.success)
+					 	{
+					 	   $scope.loadNewsList(); //  异步再次加载列表数据 (让用户看到最新数据)
+					 	}
+					 	else
+					 	{
+					 		alert("添加数据失败");
+					 	}
+					 })
+				}
+				*/
+				
+				// 编辑功能(添加 修改)
+				$scope.save = function(){
+					
+					
+					// 用户一旦点击保存按钮，我们需要区分出当前操作类型
+					var methdos_name = "addNews";
+					
+					if($scope.entity.id!=null)
+					{
+						// 执行更新功能
+						methdos_name = "updateNews";
+					}
+					
+					 // 发哦异步请求
+					 $http.post(news_eidt_url+methdos_name,$scope.entity).success(function(response){
+					 
+					 alert(response.success);
+					 	
+					 	// 成功还是失败  
+					 	if(response.success)
+					 	{
+					 	  /* $scope.loadNewsList(); //  异步再次加载列表数据 (让用户看到最新数据)*/
+                           $scope.reloadList(); // 调用 分页的查询方法
+					 	}
+					 	else
+					 	{
+					 		alert("编辑数据失败");
+					 	}
+					 })
+				}
+				
+				
+				
+				// 根据用户id查询出当前news对象
+				$scope.findOne = function(id){
+					
+					
+					// 发送请求
+					$http.get(news_query_list+"findNewsById/"+id).success(function(response){
+						
+					  $scope.entity = response;	
+					})
+					
+				}
+				
+				
+				// 处理用户选择的checkbox -> id
+				
+				$scope.selectcheckedIds = [];   // js的语法
+				
+				$scope.updateSelectchecked = function($event,id){
+					
+					// 判断用户是否选择了checkbox
+					if($event.target.checked)
+					{
+						// 用户选择了checkbox 
+						$scope.selectcheckedIds.push(id);
+					}
+				  else
+				  {
+				  	
+				  	// 获取到当前id在数组中对应的索引位置
+				  	var index = $scope.selectcheckedIds.indexOf(id); 
+				  	// 用户没有选择checkbox
+				  	$scope.selectcheckedIds.splice(index,1);
+				  }
+					
+				}
+				
+				
+				// 删除的逻辑
+				$scope.dele = function(){
+					
+					$http.get(news_eidt_url+"delNews?ids="+$scope.selectcheckedIds).success(function(response){
+						
+						if(response.success)
+						{
+							// 删除成功
+							//$scope.loadNewsList(); //  异步再次加载列表数据 (让用户看到最新数据)
+							
+							$scope.reloadList(); // 调用 分页的查询方法
+						}
+						else
+						{
+							alert('删除失败');
+						}
+					})
+				}
+				
+				
+				
+				
+				//分页控件配置
+				//currentPage当前页  
+				//totalItems :总记录数  
+				//itemsPerPage:每页记录数  
+				//perPageOptions :分页选项  
+				//onChange:当页码变更后自动触发的方法
+				
+				/*
+				   1.onChange  初始化分页的显示 （查询数据库）
+				   
+				  
+				  2.onChange 条件变更后，会立即出发该事件，重新加载条件对应的数据  
+				   
+				 * **/
+				$scope.paginationConf = {
+					currentPage: 1,
+					totalItems: 5,
+					itemsPerPage: 5,
+					perPageOptions: [5, 10, 20, 30, 40, 50],
+					onChange: function() {
+						$scope.reloadList();
+					}
+				};
+				
+				
+				// 分页的处理
+				$scope.reloadList = function(){
+					
+					
+				  $scope.findPage($scope.paginationConf.currentPage, $scope.paginationConf.itemsPerPage);	
+					
+				}
+				
+				
+				// 真正实现分页处理
+				
+                $scope.findPage = function(pageNum,pageSize){
+                	
+                	$http.get(news_query_list+"findPage?pageNum="+pageNum+"&pageSize="+pageSize).success(function(response){
+                		
+                		
+                		$scope.newslist = response.rows;  // list 集合
+                		$scope.paginationConf.totalItems = response.total; // 总记录数
+                		
+                	})
+                	
+                }
+				
+				
+				
+				
+				
+			 	 
+			})
+			
+			
+		</script>
+
+		
+		 </head>
+	
+		 <body class="hold-transition skin-red sidebar-mini" ng-app="newsApp" ng-controller="NewsController" ng-init="categoryList()">
+
+	    <div class="box-header with-border">
+			<h3 class="box-title">新闻列表管理</h3>
+	    </div>
+		<div class="box-body">
+
+			<!-- 数据表格 -->
+			<div class="table-box">
+				<!--工具栏-->
+				<div class="pull-left">
+					<div class="form-group form-inline">
+						<div class="btn-group">
+							<button type="button" class="btn btn-default" title="新建"
+								data-toggle="modal" data-target="#editModal" ng-click="entity={}">
+								<i class="fa fa-file-o"></i> 新建
+							</button>
+							<button type="button" class="btn btn-default" title="删除" ng-click="dele()">
+								<i class="fa fa-trash-o"></i> 删除
+							</button>
+							<button type="button" class="btn btn-default" title="刷新"
+								onclick="window.location.reload();">
+								<i class="fa fa-refresh"></i> 刷新
+							</button>
+						</div>
+					</div>
+				</div>
+				<div class="box-tools pull-right">
+					<div class="has-feedback"></div>
+			    </div>
+				<table class="table table-bordered table-striped">
+					<tr>
+						<th class="" style="padding-right: 0px"></th>
+						<th>标题</th>
+						<th>摘要</th>
+						<th>作者</th>
+						<th>发布时间</th>
+						<th class="text-center">操作</th>
+					</tr>
+					<tr ng-repeat="news in newslist">
+						
+						<td>
+							<input type="checkbox"  ng-click="updateSelectchecked($event,news.id)" />
+						</td>
+						<td>{{news.title}}</td>
+						<td>{{news.summary}}</td>
+						<td>{{news.author}}</td>
+						<td>{{news.createdate}}</td>
+						<td class="text-center">
+							<button type="button" class="btn bg-olive btn-xs"
+								data-toggle="modal" data-target="#editModal" ng-click="findOne(news.id)">修改</button>
+						</td>
+					</tr>
+
+				</table>
+				<tm-pagination conf="paginationConf"></tm-pagination>
+			</div>
+		</div>
+	
+	<!-- 编辑窗口 -->
+	<div class="modal fade" id="editModal" tabindex="-1" role="dialog"
+		aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">×</button>
+					<h3 id="myModalLabel">新闻编辑</h3>
+				</div>
+				<div class="modal-body">
+					<table class="table table-bordered table-striped" width="800px">
+						<tr>
+							<td>标题</td>
+							<td><input class="form-control" ng-model="entity.title">
+							</td>
+						</tr>
+						<tr>
+							<td>类别</td>
+							<td>
+								<select class="form-control" ng-model="entity.categoryid">
+									<option ng-repeat = "category in categorylist" value="{{category.id}}">{{category.cname}}</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td>作者</td>
+							<td><input class="form-control" ng-model="entity.author"></td>
+						</tr>
+						<tr>
+							<td>摘要</td>
+							<td><textarea class="form-control" cols="15" rows="8" ng-model="entity.summary"></textarea></td>
+						</tr>
+					</table>
+				</div>
+				<div class="modal-footer">
+					<button class="btn btn-success" data-dismiss="modal"
+						aria-hidden="true" ng-click="save()">保存</button>
+					<button class="btn btn-default" data-dismiss="modal"
+						aria-hidden="true">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	</body>
+</html>
