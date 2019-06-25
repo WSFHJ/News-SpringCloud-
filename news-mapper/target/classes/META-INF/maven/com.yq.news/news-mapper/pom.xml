@@ -8,9 +8,6 @@
 	</parent>
 	<artifactId>news-mapper</artifactId>
 
-
-
-
 	<dependencies>
 		<dependency>
 			<groupId>com.yq.news</groupId>
@@ -52,4 +49,5 @@
 		</dependency>
 	
 	</dependencies>
+	<version>0.0.1-SNAPSHOT</version>
 </project>
